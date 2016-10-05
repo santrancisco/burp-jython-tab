@@ -19,6 +19,9 @@ from java.util import Properties
 from org.python.util import InteractiveInterpreter
 
 from history import History
+import rlcompleter
+from sys import maxint
+
 
 
 class Console(object):
@@ -94,6 +97,28 @@ class Console(object):
 
         self.document.insertString(self.document.getLength(), prefix + data, style)
         self.textpane.caretPosition = self.document.getLength()
+
+# Adding tab completion
+    def tabAction(self, event=None):
+        phrase = self.getText()
+        completer = rlcompleter.Completer()
+        result = []
+        try:
+            for index in xrange(maxint):
+                term = completer.complete(phrase, index)
+                if term is None:
+                    break
+                result.append(term)
+        except:
+            pass
+        if len(result) > 1 :
+            for index in xrange(0, len(result), 5):
+                result[index] = "\n" + result[index]
+            self.write("\t".join(result))
+            self.resetbuffer()
+            self.write(self.PS1+phrase)
+        elif (len(result) == 1):
+            self.write(self.PS1+result[0])
 
     def enterAction(self, event=None):
         text = self.getText()
@@ -174,6 +199,7 @@ class Console(object):
         bindings = [
             (KeyEvent.VK_ENTER, 0, 'jython.enter', self.enterAction),
             (KeyEvent.VK_DELETE, 0, 'jython.delete', self.deleteAction),
+            (KeyEvent.VK_TAB, 0, 'jython.tab', self.tabAction),
 
             (KeyEvent.VK_HOME, 0, 'jython.home', self.homeAction),
             (KeyEvent.VK_LEFT, InputEvent.META_DOWN_MASK, 'jython.home', self.homeAction),
